@@ -140,6 +140,7 @@ while True:
         fechai = (input())
         print("Ingrese la fecha final")
         fechaf = (input())
+        start_time= time.process_time()
         r = controller.obrasPorAnio(catalog, fechai, fechaf)
         
         print('==============================================================================================================')
@@ -170,10 +171,13 @@ while True:
         print('')
         print(lt.getElement(r[0], 3))
         
-        
+        stop_time= time.process_time()
+        elapsed_time_mseg= (stop_time-start_time)*1000
+        print("\nEl programa se demoro " + str(elapsed_time_mseg) + " mseg en ordenar los datos.\n")
 
 
     elif int(inputs[0]) == 5:
+        start_time= time.process_time()
         lista = controller.ObrasPorNacionalidades(catalog)
         size = lt.size(lista)
         top1 = (lt.getElement(lista, size))[0]
@@ -213,7 +217,12 @@ while True:
         print('')
         print(lt.getElement(lt.getElement(valor, sizevalor-2), 1))
 
+        stop_time= time.process_time()
+        elapsed_time_mseg= (stop_time-start_time)*1000
+        print("\nEl programa se demoro " + str(elapsed_time_mseg) + " mseg en ordenar los datos.\n")
+
     elif int(inputs[0]) == 6:
+        start_time= time.process_time()
         print("Ingrese el departamento")
         dept = input()
         r = controller.transportarobras(catalog, dept)
@@ -245,6 +254,9 @@ while True:
         print((lt.getElement(listadate, sizedate - 3))[0])
         print((lt.getElement(listadate, sizedate - 4))[0])
         
+        stop_time= time.process_time()
+        elapsed_time_mseg= (stop_time-start_time)*1000
+        print("\nEl programa se demoro " + str(elapsed_time_mseg) + " mseg en ordenar los datos.\n")
            
     elif int(inputs[0]) == 8:
         print("Ingrese el numero de obras que quiere conocer: ")

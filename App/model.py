@@ -1,33 +1,5 @@
-﻿"""
- * Copyright 2020, Departamento de sistemas y Computación,
- * Universidad de Los Andes
- *
- *
- * Desarrolado para el curso ISIS1225 - Estructuras de Datos y Algoritmos
- *
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along withthis program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Contribuciones:
- *
- * Dario Correal - Version inicial
- """
-
-
+﻿from posixpath import split
 from DISClib.DataStructures.arraylist import newList, size
-from posixpath import split
-from DISClib.DataStructures.arraylist import size
 import config as cf
 from DISClib.ADT import list as lt
 from DISClib.Algorithms.Sorting import shellsort as sa
@@ -48,24 +20,15 @@ De lo contrario generaría una nueva lista del medio no encontrado y añadiria e
 def addArt(catalog, artwork):
 
     lt.addLast(catalog['Art'], artwork)
-    if artwork['Weight (kg)'] != '':
-        pass
+    
+    #id_artwork= artwork.pop('ObjectID')
+    #mp.put(catalog['Art-hash'], id_artwork, artwork)
 
-    
-    #print('Altura' + artwork['Height (cm)'])
-
-    id_artwork= artwork.pop('ObjectID')
-    mp.put(catalog['Art-hash'], id_artwork, artwork)
-    
-    
     if mp.contains(catalog['Medium'], artwork['Medium']):
         llave_valor=mp.get(catalog['Medium'],artwork['Medium'])
         valor=me.getValue(llave_valor)
-        #print(llave_valor)
         lt.addLast(valor, artwork)
 
-        #mp.put(catalog['Medium'], llave_valor,valor)
-        #mp.put(catalog['Medium'], artwork['Medium'], artwork)
     else:
         lista_creada= lt.newList()
         lt.addLast(lista_creada, artwork)
@@ -109,20 +72,16 @@ def addArt(catalog, artwork):
         lista_creada= lt.newList()
         lt.addLast(lista_creada, artwork)
         mp.put(catalog['Department'],artwork['Department'], lista_creada)
-        txt = artwork['ConstituentID']
-        x = txt.strip('[]')
-
-        mp.put(catalog['ID'],x, lista_creada)
-        
-   
 
 
 def addArtist(catalog, artistname):
 
+    
     lt.addLast(catalog['Artist'], artistname)
+    #id_artista= artistname.pop('ConstituentID')
+    #mp.put(catalog['Artist-hash'],id_artista,artistname)
+
     mp.put(catalog['IDA'],artistname['ConstituentID'],artistname['Nationality'])
-    id_artista= artistname.pop('ConstituentID')
-    mp.put(catalog['Artist-hash'],id_artista,artistname)
 
     #if mp.contains(catalog['IDA'], artistname['ConstituentID']):
     #    llave_valor=mp.get(catalog['IDA'],artistname['ConstituentID'])
@@ -146,14 +105,15 @@ def newCatalog(estructuraDatos):
     catalog['Art'] = lt.newList(datastructure=estructuraDatos)
 
     catalog['Medium'] = mp.newMap(1000, maptype='CHAINING', loadfactor=4.0, comparefunction=cmpMedio)
+    catalog['Nationality'] = mp.newMap(300, maptype='CHAINING', loadfactor=4.0, comparefunction=cmpMedio)
     catalog['ID'] = mp.newMap(1000, maptype='CHAINING', loadfactor=4.0, comparefunction=cmpMedio)
     catalog['Artist'] = lt.newList(datastructure=estructuraDatos)
     catalog['IDA'] = mp.newMap(1000, maptype='PROBING', loadfactor=0.5, comparefunction=cmpMedio)
     catalog['Department'] = mp.newMap(1000, maptype='PROBING', loadfactor=0.5, comparefunction=cmpMedio)
-
-    
     catalog['Artist-hash'] = mp.newMap(1000, maptype='PROBING', loadfactor=0.5, comparefunction=cmpMedio)
     catalog['Art-hash'] = mp.newMap(1000, maptype='PROBING', loadfactor=0.5, comparefunction=cmpMedio)
+
+    
  
     return catalog
 
@@ -218,6 +178,38 @@ def get_conteo(lista_global, inicial, final):
     lista_filtrada= filtrar_anhos(lista_ordenada, inicial, final)
     return lt.size(lista_filtrada)
     
+def nacimiento_artistas(artistas, inicial, final):
+    respuesta= lt.newList()
+    mapa_filtrado= filtrar_rango(artistas, inicial, final)
+    conteo= mp.size(mapa_filtrado)
+    llaves_ordenadas= ordenar_por_anho(mapa_filtrado)
+    lt.addLast(respuesta, conteo)
+    lt.addLast(respuesta, llaves_ordenadas)
+    return respuesta
+
+def filtrar_rango(artistas, inicial, final):
+    mapa= artistas.copy()
+    llaves= mp.keySet(mapa)
+    for llave_artista in lt.iterator(llaves):
+        valores= mp.get(artistas, llave_artista)
+        if not ((int(valores['value']['BeginDate'])>inicial) and (int(valores['value']['BeginDate'])<final)):
+            mapa= mp.remove(mapa, llave_artista)
+    return mapa
+
+def ordenar_por_anho(mapa_filtrado):
+    mapa= mapa_filtrado.copy()
+    llaves= mp.keySet(mapa)
+    lista_aux= lt.newList()
+    lista_llaves_ordenadas= lt.newList()
+    for llave_artista in lt.iterator(llaves):
+        valores= mp.get(mapa, llave_artista)
+        concatenado= str(valores['value']['BeginDate'])+ "-" + str(valores['key'])
+        lt.addLast(lista_aux, concatenado)
+        ms.sort(lista_aux, comp)
+    for i in lt.iterator(lista_aux):
+        llave_split= i.split("-")[1]
+        lt.addLast(lista_llaves_ordenadas, llave_split)
+    return lista_llaves_ordenadas
 
 def ordenar_anhos(artista1, artista2):
     return (int(artista1['BeginDate']) < int(artista2['BeginDate']))
@@ -477,76 +469,3 @@ def organizar_medio(lista, num):
     listaOrganizadaPorAño = sa.sort(lista, ordenar_fecha)
     listaRecortada = lt.sublist(listaOrganizadaPorAño, 0, num)
     return listaRecortada
-
-# Requerimiento 1
-
-def nacimiento_artistas(artistas, inicial, final):
-    respuesta= lt.newList()
-    mapa_filtrado= filtrar_rango(artistas, inicial, final)
-    conteo= mp.size(mapa_filtrado)
-    llaves_ordenadas= ordenar_por_anho(mapa_filtrado)
-    lt.addLast(respuesta, conteo)
-    lt.addLast(respuesta, llaves_ordenadas)
-    return respuesta
-
-def filtrar_rango(artistas, inicial, final):
-    mapa= artistas.copy()
-    llaves= mp.keySet(mapa)
-    for llave_artista in lt.iterator(llaves):
-        valores= mp.get(artistas, llave_artista)
-        if not ((int(valores['value']['BeginDate'])>inicial) and (int(valores['value']['BeginDate'])<final)):
-            mapa= mp.remove(mapa, llave_artista)
-    return mapa
-
-def ordenar_por_anho(mapa_filtrado):
-    mapa= mapa_filtrado.copy()
-    llaves= mp.keySet(mapa)
-    lista_aux= lt.newList()
-    lista_llaves_ordenadas= lt.newList()
-    for llave_artista in lt.iterator(llaves):
-        valores= mp.get(mapa, llave_artista)
-        concatenado= str(valores['value']['BeginDate'])+ "-" + str(valores['key'])
-        lt.addLast(lista_aux, concatenado)
-        ms.sort(lista_aux, comp)
-    for i in lt.iterator(lista_aux):
-        llave_split= i.split("-")[1]
-        lt.addLast(lista_llaves_ordenadas, llave_split)
-    return lista_llaves_ordenadas
-
-# func comparacion 
-def comp(a, b):
-    return a<b
-
-# req3
-def get_obrasxtecnica(catalog, nombre_artista):
-    id= get_idHash(catalog['Artist-hash'], nombre_artista)
-    respuesta= lt.newList()
-    if id == -1:
-        print("El artista no existe en la tabla de artistas.")
-        return -1
-    else: 
-        mapa_obras= buscar_obras(catalog['Art-hash'], id)
-        
-        print(mapa_obras)
-
-def buscar_obras(obras, id):
-    mapa= mp.newMap()
-    llaves= mp.keySet(obras)
-    for llave in lt.iterator(llaves):
-        valores= mp.get(obras, llave)
-        id_artistas= valores['value']['ConstituentID']
-        ids=(id_artistas).strip('][').split(', ')
-        for idArtist in ids:
-            if idArtist == id:
-                mp.put(mapa, llave, valores)
-                break
-    return mapa
-
-def get_idHash(artistas, nombre_artista):
-    llaves= mp.keySet(artistas)
-    for llave in lt.iterator(llaves):
-        valores= mp.get(artistas, llave)
-        if valores['value']['DisplayName']== nombre_artista:
-            return llave
-    return -1
-
